@@ -1,0 +1,96 @@
+package com.abc.electronicshop.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.abc.electronicshop.entity.ElectronicProduct;
+import com.abc.electronicshop.entity.ProductType;
+import com.abc.electronicshop.exception.ResourceNotFoundException;
+import com.abc.electronicshop.repository.ProductRepository;
+import com.abc.electronicshop.repository.ProductTypeRepository;
+
+@SpringBootTest
+public class ProductServiceTest {
+
+	@Mock
+	private ProductRepository productRepository;
+	
+	@Mock
+	private ProductTypeRepository productTypeRepository;
+
+	@InjectMocks
+	private ProductServiceImpl productServiceImpl;
+	
+	
+	@Test
+	public void testFindProductById() {
+
+		ElectronicProduct product = new ElectronicProduct();
+		product.setId(101);
+		product.setName("IPhone");
+		product.setPrice(520000);
+		product.setImage("2.jpg");
+		product.setCreateDate(LocalDate.of(2020, 10, 10));
+		product.setProductType(null);
+
+		ProductType productType = new ProductType();
+		productType.setPrdTypeId(11);
+		productType.setName("mobile");
+
+		product.setProductType(productType);
+
+		Optional<ElectronicProduct> optionalProduct = Optional.of(product);
+
+		when(productRepository.findById(101)).thenReturn(optionalProduct);
+
+		ElectronicProduct eProduct = productServiceImpl.findProductById(101);
+
+		assertEquals(product.getName(), eProduct.getName());
+
+	}
+
+	@Test
+	public void testFindProductByIdThrowingException() {
+
+		when(productRepository.findById(101)).thenThrow(ResourceNotFoundException.class);
+
+		assertThrows(ResourceNotFoundException.class, () -> productServiceImpl.findProductById(101));
+	}
+
+	@Test
+	public void testSaveDoctor() {
+
+		ElectronicProduct product = new ElectronicProduct();
+		product.setId(101);
+		product.setName("IPhone");
+		product.setPrice(520000);
+		product.setImage("2.jpg");
+		product.setCreateDate(LocalDate.of(2020, 10, 10));		
+
+		ProductType productType = new ProductType();
+		productType.setPrdTypeId(11);
+		productType.setName("mobile");
+		
+		product.setProductType(productType);
+		
+		Optional<ProductType> optionalProductType = Optional.of(productType);
+		
+		when(productTypeRepository.findById(productType.getPrdTypeId())).thenReturn(optionalProductType);		
+		
+		productServiceImpl.saveProduct(product, productType.getPrdTypeId());
+
+		verify(productRepository, times(1)).save(product);
+
+	}
+}

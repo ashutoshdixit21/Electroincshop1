@@ -1,0 +1,68 @@
+package com.abc.electronicshop.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.abc.electronicshop.entity.Basket;
+import com.abc.electronicshop.entity.BasketItem;
+import com.abc.electronicshop.entity.Customer;
+import com.abc.electronicshop.exception.ResourceNotFoundException;
+import com.abc.electronicshop.repository.BasketItemRepository;
+import com.abc.electronicshop.repository.BasketRepository;
+import com.abc.electronicshop.repository.CustomerRepository;
+
+@Service
+public class BasketServiceImpl implements BasketService {
+
+	@Autowired
+	private CustomerRepository customerRepository;
+
+	@Autowired
+	private BasketRepository basketRepository;
+	
+	@Autowired
+	private BasketItemRepository basketItemRepository;
+
+	@Override
+	public Basket addToBasket(BasketItem basketItem, long customerId) {
+
+		Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
+
+		if (optionalCustomer.isEmpty()) {
+			throw new ResourceNotFoundException("Customer not existing with id: " + customerId);
+		}
+		
+		double amount = basketItem.getElectronicProduct().getPrice()*basketItem.getQuantity();		
+		basketItem.setAmount(amount);
+		
+		Customer customer = optionalCustomer.get();			
+		
+		Basket basket = customer.getBasket();	
+		basketItem.setBasket(basket);
+		basket.addToBasket(basketItem);	
+		basket.setTotal();
+		basket.setProductCount();
+		
+		basketItemRepository.save(basketItem);
+		
+		//total
+		
+				
+		return basket;
+	}
+
+	@Override
+	public Basket getBasketById(long basketId) {
+		
+		Optional<Basket> optionalBasket = basketRepository.findById(basketId);
+		if(optionalBasket.isEmpty()) {
+			throw new ResourceNotFoundException("Basket is not existing with id: " + basketId);
+		}
+		
+		return optionalBasket.get();
+	}
+
+}

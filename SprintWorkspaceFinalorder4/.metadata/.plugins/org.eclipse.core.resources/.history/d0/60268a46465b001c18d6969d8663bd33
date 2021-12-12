@@ -1,0 +1,11 @@
+package com.abc.electronicshop.service;
+
+import com.abc.electronicshop.entity.ElectronicProductOrder;
+import com.abc.electronicshop.entity.Payment;
+
+public interface OrderService {
+	
+	public ElectronicProductOrder checkOut(long basketId, Payment payment);
+
+	ElectronicProductOrder getElectronicProductOrderById(Long orderId);
+}

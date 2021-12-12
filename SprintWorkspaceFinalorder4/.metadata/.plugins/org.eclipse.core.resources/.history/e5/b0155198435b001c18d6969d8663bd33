@@ -1,0 +1,109 @@
+package com.abc.electronicshop.service;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.abc.electronicshop.entity.Basket;
+import com.abc.electronicshop.entity.BasketItem;
+import com.abc.electronicshop.entity.ElectronicProductOrder;
+import com.abc.electronicshop.entity.ElectronicProductOrderDetails;
+import com.abc.electronicshop.entity.Payment;
+import com.abc.electronicshop.exception.OrderFailedException;
+import com.abc.electronicshop.exception.ResourceNotFoundException;
+import com.abc.electronicshop.repository.BasketItemRepository;
+import com.abc.electronicshop.repository.BasketRepository;
+import com.abc.electronicshop.repository.OrderItemRepository;
+import com.abc.electronicshop.repository.OrderRepository;
+import com.abc.electronicshop.repository.PaymentRepository;
+
+@Service
+public class OrderServiceImpl implements OrderService {
+
+	@Autowired
+	private BasketRepository basketRepository;
+	
+	@Autowired
+	private BasketItemRepository basketItemRepository;
+
+	@Autowired
+	private PaymentRepository paymentRepository;
+
+	@Autowired
+	private OrderRepository orderRepository;
+
+	@Autowired
+	private OrderItemRepository orderItemRepository;
+
+	@Override
+	public ElectronicProductOrder checkOut(long basketId, Payment payment) {
+
+		payment.setPaymentDate(LocalDate.now());
+
+		Optional<Basket> optionalBasket = basketRepository.findById(basketId);
+		if (optionalBasket.isEmpty()) {
+			throw new ResourceNotFoundException("Basket not existing with id: " + basketId);
+		}
+		Basket basket = optionalBasket.get();
+
+		if (basket.getTotal() > payment.getAmount()) {
+			throw new OrderFailedException("Order failed");
+		}
+		payment.setPaymentStatus("Success");
+
+		ElectronicProductOrder order = new ElectronicProductOrder();
+		order.setOrderDate(LocalDate.now());
+		order.setOrderNum("ODR101");
+		order.setOrderStatus("Confirmed");
+		order.setTotalAmount(basket.getTotal());
+
+		List<BasketItem> basketItems = basket.getBasketItems();
+		List<ElectronicProductOrderDetails> orderItems = order.getOrderList();
+		basketItems.forEach(item -> {
+			ElectronicProductOrderDetails orderDetails = new ElectronicProductOrderDetails();
+			orderDetails.setAmount(item.getAmount());
+			orderDetails.setQuantity(item.getQuantity());
+			orderDetails.setElectronicProduct(item.getElectronicProduct());
+			orderDetails.setOrder(order);
+
+			orderItems.add(orderDetails);
+		});
+
+		order.setCustomer(basket.getCustomer());
+
+		ElectronicProductOrder newOrder = orderRepository.save(order);
+
+		payment.setOrder(newOrder);
+
+		paymentRepository.save(payment);
+		
+		//Reset Basket
+		basket.setProductCount(0);
+		basket.setTotal(0);
+		basketRepository.save(basket);
+		
+		//clear the Basket Items 
+		
+		basketItems.forEach(item-> {
+			basketItemRepository.deleteById(item.getId());
+		});
+		
+		return newOrder;
+
+	}
+	@Override
+	public ElectronicProductOrder getElectronicProductOrderById(Long orderId)   
+	{
+	Optional<ElectronicProductOrder> optionalorder = orderRepository.findById(orderId);
+	if(optionalorder.isEmpty())
+	{
+		throw new ResourceNotFoundException("Order is Not Existing with Id:"+orderId);
+	}
+	return optionalorder.get();
+	
+	}
+}

@@ -1,0 +1,103 @@
+package com.abc.electronicshop.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.abc.electronicshop.entity.ElectronicProduct;
+import com.abc.electronicshop.entity.ElectronicProductOrder;
+import com.abc.electronicshop.entity.ElectronicProductOrderDetails;
+import com.abc.electronicshop.entity.ProductType;
+import com.abc.electronicshop.exception.ResourceNotFoundException;
+import com.abc.electronicshop.repository.OrderItemRepository;
+import com.abc.electronicshop.repository.OrderRepository;
+import com.abc.electronicshop.repository.ProductRepository;
+import com.abc.electronicshop.repository.ProductTypeRepository;
+
+@SpringBootTest
+public class OrderServiceTest {
+
+	@Mock
+	private OrderRepository orderRepository;
+	
+	@Mock
+	private OrderItemRepository orderitemRepository;
+
+	@InjectMocks
+	private OrderServiceImpl orderServiceImpl;
+	
+	
+	@Test
+	public void testFindOrdertById() {
+
+		ElectronicProductOrder order = new ElectronicProductOrder();
+		order.setOrderId(101);
+		order.setTotalAmount(26000);
+		order.setOrderNum("34");
+		order.setOrderStatus("OK");
+		order.setOrderDate(LocalDate.of(2020, 10, 10));
+		order.setOrderDetails(null);
+
+		ElectronicProductOrderDetails productDetails = new ElectronicProductOrderDetails();
+		productDetails.setId(11);
+		productDetails.setQuantity(3);
+		productDetails.setAmount(2344);
+
+		order.setElectronicProductOrderDetails(productDetails);
+
+		Optional<ElectronicProductOrder> optionalProduct = Optional.of(order);
+
+		when(orderRepository.findById(101)).thenReturn(optionalProduct);
+
+		ElectronicProduct eProduct = orderServiceImpl.findOrderById(101);
+
+		assertEquals(order.getName(), eOrder.getName());
+
+	}
+
+	@Test
+	public void testFindOrderByIdThrowingException() {
+
+		when(orderRepository.findById(101)).thenThrow(ResourceNotFoundException.class);
+
+		assertThrows(ResourceNotFoundException.class, () -> orderServiceImpl.findOrderById(101));
+	}
+
+	@Test
+	public void testSaveDoctor() {
+
+		ElectronicProductOrder order = new ElectronicProductOrder();
+		order.setOrderId(101);
+		order.setTotalAmount(27000);
+		order.setOrderNum("2");
+		order.setOrderStatus("OK");
+		order.setOrderDate(LocalDate.of(2020, 10, 10));		
+
+		ElectronicProductOrderDetails productType = new ElectronicProductOrderDetails();
+		productType.setId(11);
+		productType.setAmount(48990);
+		productType.setQuantity(4);
+		
+//		
+//		order.setElectronicProductOrderDetails(productType);
+//		
+//		Optional<ElectronicProductOrderDetails> optionalProductType = Optional.of(productType);
+//		
+//		when(orderitemRepository.findById(productType.getId()).thenReturn(optionalProductType);		
+//		
+//		orderServiceImpl.saveOrder(order, productType.getId());
+//
+//		verify(orderRepository, times(1)).save(order);
+
+	}
+}

@@ -1,0 +1,10 @@
+server.port = 8081
+ 
+spring.datasource.driver-class-name =org.postgresql.Driver
+spring.datasource.username = sprint44
+spring.datasource.password = sprint44
+spring.datasource.url =jdbc:postgresql://localhost:5432/electronicshop44
+ 
+spring.jpa.hibernate.ddl-auto=create
+spring.jpa.show-sql=true
+
